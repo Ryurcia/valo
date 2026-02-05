@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import CountUp from '@/components/CountUp';
@@ -10,34 +10,32 @@ import { ChartColumnBigIcon, ChartNoAxesCombinedIcon, UserRoundCheckIcon, UsersR
 
 export default function HomePage() {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [heroEmail, setHeroEmail] = useState('');
+  const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [heroMessage, setHeroMessage] = useState('');
 
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleHeroSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email) return;
-
-    setStatus('loading');
-
+    setHeroStatus('loading');
+    setHeroMessage('');
     try {
-      const response = await fetch('/api/waitlist', {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: heroEmail }),
       });
-
-      if (response.ok) {
-        setStatus('success');
-        setMessage("You're on the list! We'll notify you when we launch.");
-        setEmail('');
-      } else {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to join waitlist');
+      const data = await res.json();
+      if (!res.ok) {
+        setHeroStatus('error');
+        setHeroMessage(data.error || 'Something went wrong');
+        return;
       }
-    } catch (err) {
-      setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Something went wrong');
+      setHeroStatus('success');
+      setHeroMessage("You're on the list!");
+      setHeroEmail('');
+    } catch {
+      setHeroStatus('error');
+      setHeroMessage('Something went wrong. Try again.');
     }
   }
 
@@ -134,33 +132,33 @@ export default function HomePage() {
               place.
             </p>
 
-            {/* Email Form */}
-            <div id='waitlist' className='max-w-[650px] mx-auto px-4'>
-              {status === 'success' ? (
-                <div className='p-4 rounded-[10px] bg-[#22C55E]/10 border border-[#22C55E]/30'>
-                  <p className='text-white text-sm'>{message}</p>
-                </div>
+            {/* Waitlist CTA */}
+            <div className='max-w-[500px] mx-auto px-4'>
+              {heroStatus === 'success' ? (
+                <p className='text-accent-500 font-medium text-base sm:text-lg'>{heroMessage}</p>
               ) : (
-                <form onSubmit={handleSubmit} className='flex flex-col md:flex-row gap-2'>
+                <form onSubmit={handleHeroSubmit} className='flex items-center gap-0 rounded-[10px] border border-white/15 bg-white/5 p-1.5'>
                   <input
                     type='email'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder='your@email.com'
                     required
-                    className='flex-1 px-4 py-3 rounded-[10px] bg-transparent border border-white/20 text-white text-sm placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors'
+                    placeholder='Enter your email'
+                    value={heroEmail}
+                    onChange={(e) => setHeroEmail(e.target.value)}
+                    className='flex-1 min-w-0 bg-transparent text-white placeholder:text-white/40 text-sm sm:text-base px-3 sm:px-4 py-2.5 outline-none'
                   />
                   <button
-                    style={{ fontFamily: 'var(--font-zalando-sans-expanded' }}
                     type='submit'
-                    disabled={status === 'loading'}
-                    className='bg-primary-500 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium px-5 sm:px-6 py-3 rounded-[10px] transition-colors whitespace-nowrap'
+                    disabled={heroStatus === 'loading'}
+                    style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
+                    className='shrink-0 bg-primary-500 hover:bg-primary-700 disabled:opacity-60 text-white text-sm sm:text-base font-medium px-5 sm:px-6 py-2.5 rounded-[8px] transition-colors'
                   >
-                    {status === 'loading' ? 'Sending...' : 'Get notified'}
+                    {heroStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
                   </button>
                 </form>
               )}
-              {status === 'error' && <p className='mt-3 text-red-400 text-sm'>{message}</p>}
+              {heroStatus === 'error' && (
+                <p className='text-red-400 text-sm mt-2'>{heroMessage}</p>
+              )}
             </div>
 
             {/* Tagline */}

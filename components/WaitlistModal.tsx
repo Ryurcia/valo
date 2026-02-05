@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
+import Image from 'next/image';
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -25,31 +26,37 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
     };
   }, [isOpen, onClose]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setEmail('');
+      setStatus('idle');
+      setMessage('');
+    }
+  }, [isOpen]);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email) return;
-
     setStatus('loading');
-
+    setMessage('');
     try {
-      const response = await fetch('/api/waitlist', {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-
-      if (response.ok) {
-        setStatus('success');
-        setMessage("You're on the list! We'll notify you when we launch.");
-        setEmail('');
-        setTimeout(() => onClose(), 2000);
-      } else {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to join waitlist');
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(data.error || 'Something went wrong');
+        return;
       }
-    } catch (err) {
+      setStatus('success');
+      setMessage("You're on the list!");
+      setEmail('');
+    } catch {
       setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Something went wrong');
+      setMessage('Something went wrong. Try again.');
     }
   }
 
@@ -65,55 +72,68 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
       />
       {/* Modal */}
       <div
-        className='relative w-full max-w-md rounded-[10px] border border-white/10 bg-[#1a0f0a] p-6 shadow-xl'
+        className='relative w-full max-w-md rounded-[10px] border border-white/10 bg-[#1a0f0a] shadow-xl p-6 sm:p-8'
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type='button'
           onClick={onClose}
-          className='absolute right-4 top-4 text-white/60 hover:text-white transition-colors'
+          className='absolute right-3 top-3 rounded-full bg-white/10 p-1.5 text-white/60 hover:text-white hover:bg-white/20 transition-colors'
           aria-label='Close'
         >
-          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
           </svg>
         </button>
 
-        <h3
-          className='text-xl font-bold text-white mb-2 pr-8'
-          style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
-        >
-          Join the Waitlist
-        </h3>
-        <p className='text-white/60 text-sm mb-6'>
-          Get early access and be the first to know when we launch.
-        </p>
+        <div className='flex flex-col items-center text-center'>
+          <Image src='/LOGO_VALOR.svg' alt='Valo' width={40} height={40} className='mb-4' />
+          <h2
+            style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
+            className='text-white text-xl sm:text-2xl font-bold mb-2'
+          >
+            Join the Waitlist
+          </h2>
+          <p className='text-white/50 text-sm mb-6'>
+            Be the first to know when we launch. Get early access to Valo.
+          </p>
 
-        {status === 'success' ? (
-          <div className='p-4 rounded-[10px] bg-[#22C55E]/10 border border-[#22C55E]/30'>
-            <p className='text-white text-sm'>{message}</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className='flex flex-col gap-3'>
-            <input
-              type='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder='your@email.com'
-              required
-              className='w-full px-4 py-3 rounded-[10px] bg-white/5 border border-white/20 text-white text-sm placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors'
-            />
-            <button
-              type='submit'
-              disabled={status === 'loading'}
-              style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
-              className='w-full bg-primary-500 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium py-3 rounded-[10px] transition-colors'
-            >
-              {status === 'loading' ? 'Sending...' : 'Get notified'}
-            </button>
-          </form>
-        )}
-        {status === 'error' && <p className='mt-3 text-red-400 text-sm'>{message}</p>}
+          {status === 'success' ? (
+            <div className='w-full py-4'>
+              <p className='text-accent-500 font-medium text-base'>{message}</p>
+              <button
+                type='button'
+                onClick={onClose}
+                style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
+                className='mt-4 text-white/50 hover:text-white text-sm transition-colors'
+              >
+                Close
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className='w-full space-y-3'>
+              <input
+                type='email'
+                required
+                placeholder='Enter your email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className='w-full rounded-[10px] border border-white/15 bg-white/5 text-white placeholder:text-white/40 text-sm sm:text-base px-4 py-3 outline-none focus:border-primary-500/50 transition-colors'
+              />
+              <button
+                type='submit'
+                disabled={status === 'loading'}
+                style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
+                className='w-full bg-primary-500 hover:bg-primary-700 disabled:opacity-60 text-white text-sm sm:text-base font-medium py-3 rounded-[10px] transition-colors'
+              >
+                {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
+              </button>
+              {status === 'error' && (
+                <p className='text-red-400 text-sm'>{message}</p>
+              )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

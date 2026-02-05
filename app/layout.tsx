@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider waitlistUrl='/'>
       <html lang='en'>
         <body className={`${zalandoSansExpanded.variable} ${googleSansFlex.variable} antialiased`}>
           <main className='min-h-dvh'>{children}</main>
