@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #1a0f0a;
+  --background: #0f1419;
   --foreground: #ffffff;
   /* Primary Color - Orange */
   --primary-50: #fef3ed;

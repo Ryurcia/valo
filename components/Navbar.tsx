@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 
 export default function Navbar() {
   const { isSignedIn, isLoaded } = useUser();
@@ -47,16 +47,18 @@ export default function Navbar() {
               <UserButton afterSignOutUrl='/' />
             ) : (
               <>
-                <SignInButton mode='modal'>
-                  <button className='text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors'>
-                    Sign In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode='modal'>
-                  <button className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
-                    Get Started
-                  </button>
-                </SignUpButton>
+                <Link
+                  href='/sign-in'
+                  className='text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors'
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href='/sign-in'
+                  className='px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors'
+                >
+                  Get Started
+                </Link>
               </>
             )}
           </div>
