@@ -63,16 +63,12 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-[100] flex items-center justify-center p-4'>
+    <div className='fixed inset-0 z-100 flex items-center justify-center p-4'>
       {/* Backdrop */}
-      <div
-        className='absolute inset-0 bg-black/70 backdrop-blur-sm'
-        onClick={onClose}
-        aria-hidden
-      />
+      <div className='absolute inset-0 bg-black/70 backdrop-blur-sm' onClick={onClose} aria-hidden />
       {/* Modal */}
       <div
-        className='relative w-full max-w-md rounded-[10px] border border-white/10 bg-[#1a0f0a] shadow-xl p-6 sm:p-8'
+        className='relative w-full max-w-md rounded-[10px] border border-white/10 bg-[#1f1f1f] shadow-xl p-6 sm:p-8'
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -94,9 +90,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
           >
             Join the Waitlist
           </h2>
-          <p className='text-white/50 text-sm mb-6'>
-            Be the first to know when we launch. Get early access to Valo.
-          </p>
+          <p className='text-white/50 text-sm mb-6'>Be the first to know when we launch. Get early access to Valo.</p>
 
           {status === 'success' ? (
             <div className='w-full py-4'>
@@ -118,7 +112,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                 placeholder='Enter your email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='w-full rounded-[10px] border border-white/15 bg-white/5 text-white placeholder:text-white/40 text-sm sm:text-base px-4 py-3 outline-none focus:border-primary-500/50 transition-colors'
+                className='w-full rounded-[10px] border border-white/15 bg-white/5 text-white placeholder:text-white/40 text-sm sm:text-base px-4 py-3 outline-none  focus:ring-1 focus:ring-primary-500/50 focus:shadow-lg focus:shadow-primary-500/20 transition-colors'
               />
               <button
                 type='submit'
@@ -128,9 +122,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
               >
                 {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>
-              {status === 'error' && (
-                <p className='text-red-400 text-sm'>{message}</p>
-              )}
+              {status === 'error' && <p className='text-red-400 text-sm'>{message}</p>}
             </form>
           )}
         </div>

@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #1a0f0a;
@@ -28,6 +31,26 @@
   --accent-800: #0eae82;
   --accent-900: #0c9570;
   --accent-950: #0a7c5e;
+
+  /* Error */
+  --error-50: #fef2f2;
+  --error-500: #ef4444;
+  --error-900: #7f1d1d;
+
+  /* Warning */
+  --warning-50: #fffbeb;
+  --warning-500: #f59e0b;
+  --warning-900: #78350f;
+
+  /* Info */
+  --info-50: #eff6ff;
+  --info-500: #3b82f6;
+  --info-900: #1e3a8a;
+
+  /* Success - using existing accent colors */
+  --success-50: var(--accent-50);
+  --success-500: var(--accent-500);
+  --success-900: var(--accent-900);
 }
 
 @theme inline {
@@ -55,8 +78,31 @@
   --color-accent-800: var(--accent-800);
   --color-accent-900: var(--accent-900);
   --color-accent-950: var(--accent-950);
+  --color-error-50: var(--error-50);
+  --color-error-500: var(--error-500);
+  --color-error-900: var(--error-900);
+  --color-warning-50: var(--warning-50);
+  --color-warning-500: var(--warning-500);
+  --color-warning-900: var(--warning-900);
+  --color-info-50: var(--info-50);
+  --color-info-500: var(--info-500);
+  --color-info-900: var(--info-900);
+  --color-success-50: var(--success-50);
+  --color-success-500: var(--success-500);
+  --color-success-900: var(--success-900);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --animate-blink-cursor: blink-cursor 1.2s step-end infinite;
+  @keyframes blink-cursor {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
 }
 
 body {
@@ -230,4 +276,75 @@ body {
 
 .bg-gradient-wave {
   animation: gradient-wave 12s ease-in-out infinite;
+}
+
+/* Iridescent background shimmer */
+@keyframes iridescent-1 {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(3%, -2%) scale(1.04);
+  }
+}
+
+@keyframes iridescent-2 {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-2%, 3%) scale(1.03);
+  }
+}
+
+@keyframes iridescent-3 {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-3%, -2%) scale(1.04);
+  }
+}
+
+@keyframes iridescent-4 {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(2%, 2%) scale(1.04);
+  }
+}
+
+.animate-iridescent-1 {
+  animation: iridescent-1 14s ease-in-out infinite;
+}
+
+.animate-iridescent-2 {
+  animation: iridescent-2 18s ease-in-out infinite;
+}
+
+.animate-iridescent-3 {
+  animation: iridescent-3 16s ease-in-out infinite;
+}
+
+.animate-iridescent-4 {
+  animation: iridescent-4 20s ease-in-out infinite;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
 }

@@ -14,7 +14,7 @@ const googleSansFlex = Google_Sans_Flex({
 });
 
 export const metadata: Metadata = {
-  title: 'Valo - Validate Your Business Ideas',
+  title: 'Valo - Validate Your Ideas',
   description: 'Get AI-powered market insights and community feedback for your business ideas',
 };
 
