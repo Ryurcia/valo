@@ -8,26 +8,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const ideaId = searchParams.get("ideaId");
 
-    if (!userId) {
-      return NextResponse.json({ vote_type: 0 });
-    }
-
     if (!ideaId) {
       return NextResponse.json({ error: "Idea ID required" }, { status: 400 });
     }
 
-    const { data: vote, error } = await supabase
+    // Fetch all votes for this idea
+    const { data: votes, error: votesError } = await supabase
       .from("votes")
-      .select("vote_type")
-      .eq("idea_id", ideaId)
-      .eq("user_id", userId)
-      .single();
+      .select("vote_type, user_id")
+      .eq("idea_id", ideaId);
 
-    if (error && error.code !== "PGRST116") {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (votesError) {
+      return NextResponse.json({ error: votesError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ vote_type: vote?.vote_type || 0 });
+    const upvotes = (votes || []).filter((v) => v.vote_type === 1).length;
+    const downvotes = (votes || []).filter((v) => v.vote_type === -1).length;
+    const userVote = userId ? votes?.find((v) => v.user_id === userId)?.vote_type || 0 : 0;
+
+    return NextResponse.json({ vote_type: userVote, upvotes, downvotes });
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch vote" },
@@ -77,18 +76,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fetch updated vote count
-    const { data: idea, error: fetchError } = await supabase
-      .from("ideas")
-      .select("vote_count")
-      .eq("id", ideaId)
-      .single();
+    // Fetch updated vote counts
+    const { data: votes, error: fetchError } = await supabase
+      .from("votes")
+      .select("vote_type")
+      .eq("idea_id", ideaId);
 
     if (fetchError) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ vote_count: idea.vote_count });
+    const upvotes = (votes || []).filter((v) => v.vote_type === 1).length;
+    const downvotes = (votes || []).filter((v) => v.vote_type === -1).length;
+
+    return NextResponse.json({ upvotes, downvotes });
   } catch {
     return NextResponse.json(
       { error: "Failed to update vote" },

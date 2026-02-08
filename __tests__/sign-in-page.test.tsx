@@ -68,8 +68,8 @@ describe('SignInPage', () => {
     expect(screen.getByText('Sign Up')).toBeInTheDocument();
   });
 
-  describe('sign-in success redirects to /dashboard', () => {
-    it('redirects to /dashboard after successful sign-in verification', async () => {
+  describe('sign-in success redirects to /home', () => {
+    it('redirects to /home after successful sign-in verification', async () => {
       mockSignInCreate.mockResolvedValue({
         supportedFirstFactors: [{ strategy: 'email_code', emailAddressId: 'eid_123' }],
       });
@@ -101,7 +101,7 @@ describe('SignInPage', () => {
 
       await waitFor(() => {
         expect(mockSetSignInActive).toHaveBeenCalledWith({ session: 'sess_123' });
-        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+        expect(mockPush).toHaveBeenCalledWith('/home');
       });
     });
   });

@@ -77,9 +77,9 @@ describe('AuthLayout', () => {
       isLoaded: true,
     });
 
-    render(<AuthLayout><div>Dashboard</div></AuthLayout>);
+    render(<AuthLayout><div>Home</div></AuthLayout>);
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Home')).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalledWith('/onboarding');
   });
 });

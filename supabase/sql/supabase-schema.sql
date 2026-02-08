@@ -6,9 +6,12 @@ CREATE TABLE ideas (
   problem TEXT NOT NULL,
   solution TEXT NOT NULL,
   audience TEXT NOT NULL,
-  market_size TEXT,
-  market_growth TEXT,
-  competitors TEXT,
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  category TEXT NOT NULL DEFAULT '',
+  stage TEXT NOT NULL DEFAULT 'Concept',
+  looking_for_cofounder BOOLEAN NOT NULL DEFAULT false,
+  market_analysis JSONB,
+  competitors JSONB,
   difficulty TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

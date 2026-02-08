@@ -1,9 +1,47 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 import { MarketInsights } from "@/types";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
 });
+
+const marketInsightsSchema = {
+  type: Type.OBJECT,
+  properties: {
+    market_analysis: {
+      type: Type.OBJECT,
+      properties: {
+        tam: { type: Type.STRING, description: "Total Addressable Market value" },
+        cagr: { type: Type.STRING, description: "CAGR percentage" },
+        market_growth: { type: Type.STRING, description: "Market growth trends" },
+        market_size: { type: Type.STRING, description: "Current market size" },
+      },
+      required: ["tam", "cagr", "market_growth", "market_size"],
+    },
+    competitors: {
+      type: Type.OBJECT,
+      properties: {
+        competitors: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              market_share: { type: Type.STRING },
+              revenue: { type: Type.STRING },
+            },
+            required: ["name", "market_share", "revenue"],
+          },
+        },
+        your_estimated_share: { type: Type.STRING },
+        market_opportunity: { type: Type.STRING },
+      },
+      required: ["competitors", "your_estimated_share", "market_opportunity"],
+    },
+    difficulty: { type: Type.STRING, description: "1-10 scale with explanation" },
+  },
+  required: ["market_analysis", "competitors", "difficulty"],
+};
 
 export async function generateMarketInsights(
   title: string,
@@ -11,44 +49,21 @@ export async function generateMarketInsights(
   solution: string,
   audience: string
 ): Promise<MarketInsights> {
-  const prompt = `You are a market research analyst. Analyze the following business idea and provide market insights in JSON format.
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `You are a market research analyst. Analyze this business idea and provide market insights:
 
-Business Idea:
 - Title: ${title}
 - Problem: ${problem}
 - Solution: ${solution}
 - Target Audience: ${audience}
 
-Provide your analysis in the following JSON format only, with no additional text:
-{
-  "market_size": "Estimated Total Addressable Market (TAM) with explanation",
-  "market_growth": "Potential market growth rate and trends",
-  "competitors": "Key competitors and competitive landscape",
-  "difficulty": "Implementation difficulty (1-10 scale) with explanation of challenges"
-}
-
-Be realistic and provide specific insights based on current market conditions.`;
-
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
+Provide realistic TAM, CAGR, competitor data (include at least 3 real competitors with their estimated market share and revenue), and implementation difficulty assessment (1-10 scale with explanation).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: marketInsightsSchema,
+    },
   });
 
-  const content = message.content[0];
-  if (content.type !== "text") {
-    throw new Error("Unexpected response type");
-  }
-
-  const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Failed to parse market insights");
-  }
-
-  return JSON.parse(jsonMatch[0]) as MarketInsights;
+  return JSON.parse(response.text ?? "{}") as MarketInsights;
 }

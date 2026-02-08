@@ -2,28 +2,49 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IdeaFormData } from "@/types";
+import { Sparkles, Users } from "lucide-react";
+import { IdeaFormData, IDEA_TAGS, IDEA_CATEGORIES, IDEA_STAGES } from "@/types";
 
 export default function IdeaForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [getMarketInsights, setGetMarketInsights] = useState(true);
   const [formData, setFormData] = useState<IdeaFormData>({
     title: "",
     problem: "",
     solution: "",
     audience: "",
+    tags: [],
+    category: "",
+    stage: "",
+    looking_for_cofounder: false,
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTagToggle = (tag: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter((t) => t !== tag)
+        : [...prev.tags, tag],
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.tags.length === 0) {
+      setError("Please select at least one tag");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -33,7 +54,7 @@ export default function IdeaForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, getMarketInsights }),
       });
 
       if (!response.ok) {
@@ -50,18 +71,25 @@ export default function IdeaForm() {
     }
   };
 
+  const inputClass =
+    "w-full px-0 py-3 bg-transparent border-0 border-b border-border/60 text-foreground placeholder:text-white/30 focus:ring-0 focus:border-primary-500 focus:outline-none transition-colors resize-none";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400">
+        <div className="py-3 px-4 rounded-lg bg-error-500/10 text-error-500 text-sm">
           {error}
         </div>
       )}
 
+      <p className="text-sm text-white/70 px-4 py-3 rounded-lg bg-white/5 border border-white/10">
+        Obviously don&apos;t give away the special sauce—share enough to validate. We are not responsible for stolen ideas.
+      </p>
+
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-white/60 mb-1.5"
         >
           Title
         </label>
@@ -73,14 +101,14 @@ export default function IdeaForm() {
           onChange={handleChange}
           required
           placeholder="Give your idea a catchy title"
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          className={inputClass}
         />
       </div>
 
       <div>
         <label
           htmlFor="problem"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-white/60 mb-1.5"
         >
           The Problem
         </label>
@@ -92,14 +120,14 @@ export default function IdeaForm() {
           required
           rows={4}
           placeholder="What problem are you trying to solve? Who experiences this problem?"
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+          className={inputClass}
         />
       </div>
 
       <div>
         <label
           htmlFor="solution"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-white/60 mb-1.5"
         >
           Solution
         </label>
@@ -111,14 +139,14 @@ export default function IdeaForm() {
           required
           rows={4}
           placeholder="How does your idea solve this problem? What makes it unique?"
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+          className={inputClass}
         />
       </div>
 
       <div>
         <label
           htmlFor="audience"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-white/60 mb-1.5"
         >
           Target Audience
         </label>
@@ -130,15 +158,159 @@ export default function IdeaForm() {
           required
           rows={3}
           placeholder="Who is your target customer? Describe their demographics, behaviors, and needs."
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+          className={inputClass}
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-      >
+      <div>
+        <label className="block text-sm font-medium text-white/60 mb-3">
+          Tags <span className="text-white/30">(select at least one)</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {IDEA_TAGS.map((tag) => {
+            const isSelected = formData.tags.includes(tag);
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleTagToggle(tag)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  isSelected
+                    ? "bg-primary-500/20 border-primary-500 text-primary-400"
+                    : "bg-transparent border-border/60 text-white/40 hover:border-white/40 hover:text-white/60"
+                }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="category"
+          className="block text-sm font-medium text-white/60 mb-1.5"
+        >
+          Category
+        </label>
+        <select
+          id="category"
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          required
+          className={`${inputClass} cursor-pointer appearance-none`}
+        >
+          <option value="" disabled className="bg-surface text-white/30">
+            Select a category
+          </option>
+          {IDEA_CATEGORIES.map((cat) => (
+            <option key={cat} value={cat} className="bg-surface text-white">
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="stage"
+          className="block text-sm font-medium text-white/60 mb-1.5"
+        >
+          Stage
+        </label>
+        <select
+          id="stage"
+          name="stage"
+          value={formData.stage}
+          onChange={handleChange}
+          required
+          className={`${inputClass} cursor-pointer appearance-none`}
+        >
+          <option value="" disabled className="bg-surface text-white/30">
+            Select a stage
+          </option>
+          {IDEA_STAGES.map((s) => (
+            <option key={s} value={s} className="bg-surface text-white">
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-3">
+        <label
+          htmlFor="cofounder-toggle"
+          className="flex items-center gap-2.5 cursor-pointer flex-1"
+        >
+          <Users size={20} className="text-primary-500 shrink-0" />
+          <span className="text-sm font-medium text-white/80">Looking for Co-founder</span>
+        </label>
+        <button
+          type="button"
+          role="switch"
+          id="cofounder-toggle"
+          aria-checked={formData.looking_for_cofounder}
+          onClick={() =>
+            setFormData((prev) => ({
+              ...prev,
+              looking_for_cofounder: !prev.looking_for_cofounder,
+            }))
+          }
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-background ${
+            formData.looking_for_cofounder ? "bg-primary-500" : "bg-white/20"
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+              formData.looking_for_cofounder ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-3">
+        <label
+          htmlFor="market-insights-toggle"
+          className="flex items-center gap-2.5 cursor-pointer flex-1"
+        >
+          <Sparkles size={20} className="text-primary-500 shrink-0" />
+          <span className="text-sm font-medium text-white/80">Get Market Insights</span>
+          <span className="text-xs text-white/40">(AI-powered)</span>
+        </label>
+        <button
+          type="button"
+          role="switch"
+          id="market-insights-toggle"
+          aria-checked={getMarketInsights}
+          onClick={() => setGetMarketInsights((prev) => !prev)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-background ${
+            getMarketInsights ? "bg-primary-500" : "bg-white/20"
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+              getMarketInsights ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          disabled={isSubmitting}
+          className="px-6 py-4 text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Discard
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 py-4 px-4 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
         {isSubmitting ? (
           <>
             <svg
@@ -163,10 +335,13 @@ export default function IdeaForm() {
             </svg>
             Generating Insights...
           </>
-        ) : (
+        ) : getMarketInsights ? (
           "Submit & Get Market Insights"
+        ) : (
+          "Submit Idea"
         )}
-      </button>
+        </button>
+      </div>
     </form>
   );
 }

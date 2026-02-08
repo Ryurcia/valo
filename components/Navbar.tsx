@@ -24,10 +24,10 @@ export default function Navbar() {
               {isSignedIn && (
                 <>
                   <Link
-                    href='/dashboard'
+                    href='/home'
                     className='text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors'
                   >
-                    Dashboard
+                    Home
                   </Link>
                   <Link
                     href='/ideas/new'

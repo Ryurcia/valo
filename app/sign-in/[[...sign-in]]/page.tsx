@@ -87,7 +87,7 @@ export default function SignInPage() {
 
         if (result.status === 'complete') {
           await setSignInActive({ session: result.createdSessionId });
-          router.push('/dashboard');
+          router.push('/home');
         }
       } else {
         const result = await signUp.attemptEmailAddressVerification({ code });

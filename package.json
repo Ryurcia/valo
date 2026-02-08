@@ -13,7 +13,9 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
     "@clerk/nextjs": "^6.37.2",
+    "@google/genai": "^1.40.0",
     "@supabase/supabase-js": "^2.94.1",
+    "@tanstack/react-query": "^5.90.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",

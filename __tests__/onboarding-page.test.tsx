@@ -49,7 +49,7 @@ describe('OnboardingPage', () => {
     expect(screen.queryByText('Complete Your Profile')).not.toBeInTheDocument();
   });
 
-  it('redirects to /dashboard if onboarding is already complete', async () => {
+  it('redirects to /home if onboarding is already complete', async () => {
     mockUseUser.mockReturnValue({
       user: { publicMetadata: { onboardingComplete: true } },
       isLoaded: true,
@@ -57,7 +57,7 @@ describe('OnboardingPage', () => {
     render(<OnboardingPage />);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      expect(mockPush).toHaveBeenCalledWith('/home');
     });
   });
 
@@ -99,7 +99,7 @@ describe('OnboardingPage', () => {
     expect(options).toContain('Brazil');
   });
 
-  it('submits form and redirects to /dashboard on success', async () => {
+  it('submits form and redirects to /home on success', async () => {
     render(<OnboardingPage />);
 
     fireEvent.change(screen.getByPlaceholderText('John'), { target: { value: 'Jane' } });
@@ -124,7 +124,7 @@ describe('OnboardingPage', () => {
     });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      expect(mockPush).toHaveBeenCalledWith('/home');
     });
   });
 
@@ -147,7 +147,7 @@ describe('OnboardingPage', () => {
     });
 
     // Should NOT redirect
-    expect(mockPush).not.toHaveBeenCalledWith('/dashboard');
+    expect(mockPush).not.toHaveBeenCalledWith('/home');
   });
 
   it('shows generic error on network failure', async () => {
@@ -189,7 +189,7 @@ describe('OnboardingPage', () => {
     resolveFetch!({ ok: true, json: () => Promise.resolve({ success: true }) });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      expect(mockPush).toHaveBeenCalledWith('/home');
     });
   });
 });

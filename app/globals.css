@@ -1,11 +1,12 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --background: #0f1419;
   --foreground: #ffffff;
+  --surface: #1a1f29;
+  --surface-variant: #242933;
+  --border: #2d3340;
   /* Primary Color - Orange */
   --primary-50: #fef3ed;
   --primary-100: #fde7db;
@@ -56,6 +57,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-border: var(--border);
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
   --color-primary-200: var(--primary-200);
@@ -345,6 +349,6 @@ body {
 
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-white;
   }
 }

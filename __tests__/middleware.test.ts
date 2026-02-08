@@ -71,8 +71,8 @@ describe('Middleware route configuration', () => {
   });
 
   describe('protected routes', () => {
-    it('/dashboard is protected', () => {
-      expect(isPublicRoute(makeRequest('/dashboard'))).toBe(false);
+    it('/home is protected', () => {
+      expect(isPublicRoute(makeRequest('/home'))).toBe(false);
     });
 
     it('/api/ideas is protected', () => {

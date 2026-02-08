@@ -50,7 +50,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (isLoaded && user?.publicMetadata?.onboardingComplete) {
-      router.push('/dashboard');
+      router.push('/home');
     }
   }, [isLoaded, user, router]);
 
@@ -88,7 +88,7 @@ export default function OnboardingPage() {
         return;
       }
 
-      router.push('/dashboard');
+      router.push('/home');
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {

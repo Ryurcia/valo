@@ -3,6 +3,8 @@
 import React, { useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/Sidebar';
+import QueryProvider from '@/components/providers/QueryProvider';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoaded } = useUser();
@@ -26,5 +28,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return null;
   }
 
-  return <div className='bg-background'>{children}</div>;
+  return (
+    <QueryProvider>
+      <div className='bg-background min-h-dvh flex'>
+        <Sidebar />
+        <main className='flex-1 min-w-0'>{children}</main>
+      </div>
+    </QueryProvider>
+  );
 }
