@@ -35,6 +35,12 @@ export default function Navbar() {
                   >
                     Submit Idea
                   </Link>
+                  <Link
+                    href='/settings'
+                    className='text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors'
+                  >
+                    Settings
+                  </Link>
                 </>
               )}
             </div>

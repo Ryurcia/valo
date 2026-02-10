@@ -10,7 +10,7 @@ interface PaginatedIdeasResponse {
   nextCursor: string | null;
 }
 
-const FEED_QUERY_KEY = ["feed", "ideas"] as const;
+export const FEED_QUERY_KEY = ["feed", "ideas"] as const;
 const PAGE_SIZE = 30;
 
 async function fetchFeedPage({

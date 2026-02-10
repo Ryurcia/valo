@@ -152,35 +152,37 @@ export default function Sidebar() {
 
           {/* User Section */}
           <div className='px-3 pb-5'>
-            <div
-              className={cn(
-                'flex items-center gap-3 rounded-xl p-2.5 bg-white/5 overflow-hidden',
-                collapsed && 'justify-center p-2 bg-transparent'
-              )}
-            >
-              <div className='w-9 h-9 rounded-full bg-white/20 shrink-0 overflow-hidden'>
-                {user?.imageUrl && (
-                  <Image
-                    src={user.imageUrl}
-                    alt={fullName}
-                    width={36}
-                    height={36}
-                    className='w-full h-full object-cover'
-                  />
-                )}
-              </div>
+            <Link href='/profile'>
               <div
                 className={cn(
-                  'flex flex-col min-w-0 transition-all duration-300 overflow-hidden',
-                  collapsed ? 'hidden' : 'block'
+                  'flex items-center gap-3 rounded-xl p-2.5 bg-white/5 overflow-hidden hover:bg-white/10 transition-colors cursor-pointer',
+                  collapsed && 'justify-center p-2 bg-transparent hover:bg-white/5'
                 )}
               >
-                <span className='flex flex-col  text-sm font-medium text-white truncate'>{fullName}</span>
-                {username && (
-                  <span className='text-xs text-white/40 truncate'>@{username.replace('@', '').split('@')[0]}</span>
-                )}
+                <div className='w-9 h-9 rounded-full bg-white/20 shrink-0 overflow-hidden'>
+                  {user?.imageUrl && (
+                    <Image
+                      src={user.imageUrl}
+                      alt={fullName}
+                      width={36}
+                      height={36}
+                      className='w-full h-full object-cover'
+                    />
+                  )}
+                </div>
+                <div
+                  className={cn(
+                    'flex flex-col min-w-0 transition-all duration-300 overflow-hidden',
+                    collapsed ? 'hidden' : 'block'
+                  )}
+                >
+                  <span className='flex flex-col  text-sm font-medium text-white truncate'>{fullName}</span>
+                  {username && (
+                    <span className='text-xs text-white/40 truncate'>@{username.replace('@', '').split('@')[0]}</span>
+                  )}
+                </div>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </aside>

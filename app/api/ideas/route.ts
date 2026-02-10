@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { generateMarketInsights } from '@/lib/ai';
 import { IDEA_TAGS, IDEA_CATEGORIES, IDEA_STAGES } from '@/types';
+import { calculateIdeaMatch } from '@/lib/matching';
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient();
     const { userId } = await auth();
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor');
@@ -68,13 +70,67 @@ export async function GET(request: NextRequest) {
       voteCounts.set(vote.idea_id, entry);
     }
 
-    const ideasWithVotes = paginatedIdeas.map((idea) => ({
-      ...idea,
-      author: authorMap.get(idea.user_id) ?? null,
-      upvotes: voteCounts.get(idea.id)?.upvotes || 0,
-      downvotes: voteCounts.get(idea.id)?.downvotes || 0,
-      user_vote: voteCounts.get(idea.id)?.user_vote || 0,
-    }));
+    // Fetch viewer's profile and connection statuses for co-founder matching
+    let viewerProfile: { skills: string[]; looking_for: string[]; availability: string | null; experience_level: string | null } | null = null;
+    const connectionStatusMap = new Map<string, string>();
+
+    if (userId) {
+      const cofounderIdeaIds = paginatedIdeas
+        .filter((i) => i.looking_for_cofounder && i.user_id !== userId)
+        .map((i) => i.id);
+
+      const [profileResult, connectionsResult] = await Promise.all([
+        supabase.from('users').select('skills, looking_for, availability, experience_level').eq('clerk_id', userId).single(),
+        cofounderIdeaIds.length > 0
+          ? supabase
+              .from('connections')
+              .select('idea_id, status')
+              .eq('requester_id', userId)
+              .in('idea_id', cofounderIdeaIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      if (profileResult.data) {
+        viewerProfile = {
+          skills: profileResult.data.skills || [],
+          looking_for: profileResult.data.looking_for || [],
+          availability: profileResult.data.availability || null,
+          experience_level: profileResult.data.experience_level || null,
+        };
+      }
+
+      for (const conn of connectionsResult.data || []) {
+        if (conn.idea_id) connectionStatusMap.set(conn.idea_id, conn.status);
+      }
+    }
+
+    const ideasWithVotes = paginatedIdeas.map((idea) => {
+      let match_percentage: number | null = null;
+      let connection_status: string | null = null;
+
+      if (idea.looking_for_cofounder && userId && idea.user_id !== userId) {
+        if (viewerProfile) {
+          const match = calculateIdeaMatch(viewerProfile, {
+            cofounder_skills_needed: idea.cofounder_skills_needed || [],
+            cofounder_roles_needed: idea.cofounder_roles_needed || [],
+            cofounder_experience_level: idea.cofounder_experience_level || null,
+            cofounder_time_commitment: idea.cofounder_time_commitment || null,
+          });
+          match_percentage = match?.percentage ?? null;
+        }
+        connection_status = connectionStatusMap.get(idea.id) || null;
+      }
+
+      return {
+        ...idea,
+        author: authorMap.get(idea.user_id) ?? null,
+        upvotes: voteCounts.get(idea.id)?.upvotes || 0,
+        downvotes: voteCounts.get(idea.id)?.downvotes || 0,
+        user_vote: voteCounts.get(idea.id)?.user_vote || 0,
+        match_percentage,
+        connection_status,
+      };
+    });
 
     return NextResponse.json({
       ideas: ideasWithVotes,
@@ -87,6 +143,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient();
     const { userId } = await auth();
 
     if (!userId) {
@@ -94,8 +151,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, problem, solution, audience, tags, category, stage, looking_for_cofounder, getMarketInsights } =
-      body;
+    const {
+      title,
+      problem,
+      solution,
+      audience,
+      tags,
+      category,
+      stage,
+      looking_for_cofounder,
+      cofounder_skills_needed,
+      cofounder_roles_needed,
+      cofounder_experience_level,
+      cofounder_time_commitment,
+      getMarketInsights,
+    } = body;
 
     if (!title || !problem || !solution || !audience) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -117,26 +187,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid stage is required' }, { status: 400 });
     }
 
-    // Generate market insights using AI (optional)
-    let insights = {
-      market_analysis: null as { tam: string; cagr: string; market_growth: string; market_size: string } | null,
-      competitors: null as {
-        competitors: { name: string; market_share: string; revenue: string }[];
-        your_estimated_share: string;
-        market_opportunity: string;
-      } | null,
-      difficulty: null as string | null,
-    };
+    // Generate market insights before inserting if requested
+    let market_analysis = null;
+    let competitors = null;
+    let difficulty = null;
 
     if (getMarketInsights) {
       try {
-        insights = await generateMarketInsights(title, problem, solution, audience);
+        const insights = await generateMarketInsights(title, problem, solution, audience);
+        market_analysis = insights.market_analysis;
+        competitors = insights.competitors;
+        difficulty = insights.difficulty;
       } catch (aiError) {
         console.error('AI insights generation failed:', aiError);
       }
     }
 
-    // Insert idea into database
     const { data: idea, error } = await supabase
       .from('ideas')
       .insert({
@@ -149,9 +215,13 @@ export async function POST(request: NextRequest) {
         category,
         stage,
         looking_for_cofounder: Boolean(looking_for_cofounder),
-        market_analysis: insights.market_analysis,
-        competitors: insights.competitors,
-        difficulty: insights.difficulty,
+        cofounder_skills_needed: looking_for_cofounder ? cofounder_skills_needed || [] : [],
+        cofounder_roles_needed: looking_for_cofounder ? cofounder_roles_needed || [] : [],
+        cofounder_experience_level: looking_for_cofounder ? cofounder_experience_level || null : null,
+        cofounder_time_commitment: looking_for_cofounder ? cofounder_time_commitment || null : null,
+        market_analysis,
+        competitors,
+        difficulty,
       })
       .select()
       .single();

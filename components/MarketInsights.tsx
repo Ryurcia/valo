@@ -6,17 +6,11 @@ interface MarketInsightsProps {
   difficulty: string | null;
 }
 
-export default function MarketInsights({
-  marketAnalysis,
-  competitors,
-  difficulty,
-}: MarketInsightsProps) {
+export default function MarketInsights({ marketAnalysis, competitors, difficulty }: MarketInsightsProps) {
   if (!marketAnalysis && !competitors && !difficulty) {
     return (
       <div className='p-6 bg-surface-variant rounded-lg'>
-        <p className='text-white/50 text-center text-sm'>
-          Market insights are being generated...
-        </p>
+        <p className='text-white/50 text-center text-sm'>Market insights are being generated...</p>
       </div>
     );
   }
@@ -54,7 +48,10 @@ export default function MarketInsights({
             <p className='text-xs font-medium text-accent-500 mb-3'>Competitors</p>
             <div className='space-y-2'>
               {competitors.competitors.map((competitor, index) => (
-                <div key={index} className='flex items-center justify-between py-2 border-b border-white/5 last:border-0'>
+                <div
+                  key={index}
+                  className='flex items-center justify-between py-2 border-b border-white/5 last:border-0'
+                >
                   <span className='text-sm font-medium text-white'>{competitor.name}</span>
                   <div className='flex items-center gap-4 text-xs text-white/60'>
                     <span>{competitor.market_share} share</span>

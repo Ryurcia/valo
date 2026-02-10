@@ -1,3 +1,36 @@
+export const COFOUNDER_SKILLS = [
+  'Frontend',
+  'Backend',
+  'Full Stack',
+  'Mobile (iOS)',
+  'Mobile (Android)',
+  'AI/ML',
+  'Data Science',
+  'DevOps',
+  'UI/UX Design',
+  'Product Management',
+  'Marketing',
+  'Sales',
+  'Growth Hacking',
+  'Finance',
+  'Legal',
+  'Operations',
+  'Content Writing',
+  'Community Management',
+] as const;
+
+export const COFOUNDER_ROLES = [
+  'Technical Co-Founder',
+  'Business Co-Founder',
+  'Design Co-Founder',
+  'Marketing Co-Founder',
+  'Operations Co-Founder',
+] as const;
+
+export const EXPERIENCE_LEVELS = ['Any', 'Junior', 'Mid-Level', 'Senior', 'Lead/Principal'] as const;
+
+export const TIME_COMMITMENTS = ['Full-time', 'Part-time', 'Weekends', 'Flexible'] as const;
+
 export const IDEA_TAGS = [
   'AI/ML',
   'SaaS',
@@ -76,6 +109,10 @@ export interface Idea {
   category: string;
   stage: string;
   looking_for_cofounder: boolean;
+  cofounder_skills_needed: string[];
+  cofounder_roles_needed: string[];
+  cofounder_experience_level: string | null;
+  cofounder_time_commitment: string | null;
   market_analysis: MarketAnalysis | null;
   competitors: CompetitiveAnalysis | null;
   difficulty: string | null;
@@ -85,6 +122,8 @@ export interface Idea {
   user_vote: -1 | 0 | 1;
   created_at: string;
   author?: IdeaAuthor | null;
+  match_percentage?: number | null;
+  connection_status?: 'pending' | 'accepted' | 'declined' | null;
 }
 
 export interface IdeaFormData {
@@ -96,6 +135,10 @@ export interface IdeaFormData {
   category: string;
   stage: string;
   looking_for_cofounder: boolean;
+  cofounder_skills_needed: string[];
+  cofounder_roles_needed: string[];
+  cofounder_experience_level: string;
+  cofounder_time_commitment: string;
 }
 
 export interface MarketInsights {
@@ -120,4 +163,34 @@ export interface Vote {
   user_id: string;
   vote_type: -1 | 1;
   created_at: string;
+}
+
+export type ConnectionStatus = 'pending' | 'accepted' | 'declined';
+
+export interface Connection {
+  id: string;
+  requester_id: string;
+  recipient_id: string;
+  idea_id: string | null;
+  status: ConnectionStatus;
+  message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  clerk_id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  role: string | null;
+  skills: string[];
+  looking_for: string[];
+  bio: string | null;
+  linkedin_url: string | null;
+  availability: string | null;
+  seeking_cofounder: boolean;
+  interests: string[];
+  country: string | null;
+  image_url?: string | null;
 }

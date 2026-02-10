@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert user into Supabase
+    const supabase = createServerSupabaseClient();
     const { error: dbError } = await supabase.from('users').insert({
       clerk_id: userId,
       first_name: firstName,

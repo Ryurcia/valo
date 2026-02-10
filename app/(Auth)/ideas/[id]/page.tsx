@@ -1,12 +1,16 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { calculateIdeaMatch } from '@/lib/matching';
 import MarketInsights from '@/components/MarketInsights';
 import VoteButtons from '@/components/VoteButtons';
 import CommentSection from '@/components/CommentSection';
-import { ArrowLeftIcon } from 'lucide-react';
+import CofounderRequirements from '@/components/CofounderRequirements';
+import CollaborationCTA from '@/components/CollaborationCTA';
+import BackButton from '@/components/BackButton';
+import DeleteIdeaButton from '@/components/DeleteIdeaButton';
+import { Users } from 'lucide-react';
 
 interface IdeaPageProps {
   params: Promise<{ id: string }>;
@@ -15,6 +19,8 @@ interface IdeaPageProps {
 export default async function IdeaPage({ params }: IdeaPageProps) {
   const { id } = await params;
   const { userId } = await auth();
+
+  const supabase = createServerSupabaseClient();
 
   const { data: idea, error } = await supabase.from('ideas').select('*').eq('id', id).single();
 
@@ -61,15 +67,41 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
 
   const isAuthor = userId === idea.user_id;
 
+  // Fetch viewer profile and connection status for co-founder matching
+  let matchResult = null;
+  let connectionStatus: string | null = null;
+  let hasProfile = false;
+
+  if (userId && !isAuthor && idea.looking_for_cofounder) {
+    const [profileResult, connectionResult] = await Promise.all([
+      supabase.from('users').select('skills, looking_for, availability, experience_level').eq('clerk_id', userId).single(),
+      supabase.from('connections').select('status').eq('requester_id', userId).eq('idea_id', id).single(),
+    ]);
+
+    if (profileResult.data) {
+      const profile = {
+        skills: profileResult.data.skills || [],
+        looking_for: profileResult.data.looking_for || [],
+        availability: profileResult.data.availability || null,
+        experience_level: profileResult.data.experience_level || null,
+      };
+      hasProfile = profile.skills.length > 0 || profile.looking_for.length > 0;
+      matchResult = calculateIdeaMatch(profile, {
+        cofounder_skills_needed: idea.cofounder_skills_needed || [],
+        cofounder_roles_needed: idea.cofounder_roles_needed || [],
+        cofounder_experience_level: idea.cofounder_experience_level || null,
+        cofounder_time_commitment: idea.cofounder_time_commitment || null,
+      });
+    }
+
+    if (connectionResult.data) {
+      connectionStatus = connectionResult.data.status;
+    }
+  }
+
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
-      <Link
-        href='/home'
-        className='inline-flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-colors duration-100'
-      >
-        <ArrowLeftIcon className='w-4 h-4' />
-        Back home
-      </Link>
+      <BackButton />
 
       <div className='bg-surface-variant rounded-lg p-6 sm:p-8 mb-6'>
         {/* Header: Author & Date */}
@@ -85,9 +117,7 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
                   className='w-full h-full object-cover'
                 />
               ) : (
-                <span className='text-sm font-medium text-white/60'>
-                  {displayName[0]?.toUpperCase() || '?'}
-                </span>
+                <span className='text-sm font-medium text-white/60'>{displayName[0]?.toUpperCase() || '?'}</span>
               )}
             </div>
             <div className='min-w-0'>
@@ -95,7 +125,10 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
               {author?.username && <p className='text-xs text-white/50 truncate'>@{author.username}</p>}
             </div>
           </div>
-          <span className='text-xs text-white/40 shrink-0'>Posted on {formattedDate}</span>
+          <div className='flex items-center gap-3 shrink-0'>
+            <span className='text-xs text-white/40'>Posted on {formattedDate}</span>
+            {isAuthor && <DeleteIdeaButton ideaId={idea.id} />}
+          </div>
         </div>
 
         {/* Badges */}
@@ -132,22 +165,34 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
         <h1 className='text-2xl sm:text-3xl font-bold text-white mb-6'>{idea.title}</h1>
 
         {/* Content Sections */}
-        <div className='space-y-6'>
-          <div>
+        <div>
+          <div className='p-3 bg-surface rounded-lg mb-5'>
             <p className='text-xs font-medium text-accent-500 mb-2'>Problem</p>
             <p className='text-sm text-white/70 leading-relaxed'>{idea.problem}</p>
           </div>
 
-          <div>
+          <div className='p-3 bg-surface rounded-lg mb-5'>
             <p className='text-xs font-medium text-accent-500 mb-2'>Solution</p>
             <p className='text-sm text-white/70 leading-relaxed'>{idea.solution}</p>
           </div>
 
-          <div>
+          <div className='p-3 bg-surface rounded-lg mb-5'>
             <p className='text-xs font-medium text-accent-500 mb-2'>Target Audience</p>
             <p className='text-sm text-white/70 leading-relaxed'>{idea.audience}</p>
           </div>
         </div>
+
+        {/* Co-Founder Requirements */}
+        {idea.looking_for_cofounder && (
+          <div className='mt-6 pt-6 border-t border-white/10'>
+            <CofounderRequirements
+              skillsNeeded={idea.cofounder_skills_needed || []}
+              rolesNeeded={idea.cofounder_roles_needed || []}
+              experienceLevel={idea.cofounder_experience_level}
+              timeCommitment={idea.cofounder_time_commitment}
+            />
+          </div>
+        )}
 
         {/* Voting */}
         <div className='mt-8 pt-6 border-t border-white/10'>
@@ -155,13 +200,31 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
         </div>
       </div>
 
-      {/* Market Insights - Only for author and only if data exists */}
+      {/* Market Insights - Only for author */}
       {isAuthor && (idea.market_analysis || idea.competitors || idea.difficulty) && (
         <div className='mb-6'>
           <MarketInsights
             marketAnalysis={idea.market_analysis}
             competitors={idea.competitors}
             difficulty={idea.difficulty}
+          />
+        </div>
+      )}
+
+      {/* Collaboration CTA - Above comments for visibility */}
+      {idea.looking_for_cofounder && !isAuthor && userId && (
+        <div className='mb-6 p-6 bg-surface-variant rounded-lg border border-white/10'>
+          <div className='flex items-center gap-2 mb-4'>
+            <Users size={18} className='text-primary-500' />
+            <h3 className='text-base font-semibold text-white'>Interested in collaborating?</h3>
+          </div>
+          <CollaborationCTA
+            ideaId={idea.id}
+            ideaTitle={idea.title}
+            recipientId={idea.user_id}
+            matchResult={matchResult}
+            connectionStatus={connectionStatus}
+            hasProfile={hasProfile}
           />
         </div>
       )}
