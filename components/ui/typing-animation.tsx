@@ -20,6 +20,7 @@ interface TypingAnimationProps extends MotionProps {
   showCursor?: boolean;
   blinkCursor?: boolean;
   cursorStyle?: 'line' | 'block' | 'underscore';
+  onComplete?: () => void;
 }
 
 export function TypingAnimation({
@@ -37,6 +38,7 @@ export function TypingAnimation({
   showCursor = true,
   blinkCursor = true,
   cursorStyle = 'line',
+  onComplete,
   ...props
 }: TypingAnimationProps) {
   const MotionComponent = motion.create(Component, {
@@ -48,6 +50,7 @@ export function TypingAnimation({
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [phase, setPhase] = useState<'typing' | 'pause' | 'deleting'>('typing');
   const elementRef = useRef<HTMLElement | null>(null);
+  const completeFiredRef = useRef(false);
   const isInView = useInView(elementRef as React.RefObject<Element>, {
     amount: 0.3,
     once: true,
@@ -83,6 +86,10 @@ export function TypingAnimation({
             setDisplayedText(graphemes.slice(0, currentCharIndex + 1).join(''));
             setCurrentCharIndex(currentCharIndex + 1);
           } else {
+            if (!completeFiredRef.current && onComplete) {
+              completeFiredRef.current = true;
+              onComplete();
+            }
             if (hasMultipleWords || loop) {
               const isLastWord = currentWordIndex === wordsToAnimate.length - 1;
               if (!isLastWord || loop) {
@@ -103,6 +110,7 @@ export function TypingAnimation({
           } else {
             const nextIndex = (currentWordIndex + 1) % wordsToAnimate.length;
             setCurrentWordIndex(nextIndex);
+            completeFiredRef.current = false;
             setPhase('typing');
           }
           break;
@@ -123,6 +131,7 @@ export function TypingAnimation({
     deletingSpeed,
     pauseDelay,
     delay,
+    onComplete,
   ]);
 
   const currentWordGraphemes = Array.from(wordsToAnimate[currentWordIndex] || '');

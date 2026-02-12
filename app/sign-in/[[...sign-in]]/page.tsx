@@ -189,6 +189,14 @@ export default function SignInPage() {
                 >
                   {loading ? 'Sending code...' : 'Continue with Email'}
                 </button>
+                {mode === 'sign-up' && (
+                  <p className='text-xs text-white/40 text-center'>
+                    By signing up, you agree to our{' '}
+                    <Link href='/privacy' className='text-primary-400 hover:text-primary-300 underline transition-colors'>
+                      Privacy Policy
+                    </Link>
+                  </p>
+                )}
               </form>
             ) : (
               <form onSubmit={handleVerifyCode} className='space-y-4'>

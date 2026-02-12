@@ -7,7 +7,7 @@ import CountUp from '@/components/CountUp';
 import AnimateInView from '@/components/AnimateInView';
 import WaitlistModal from '@/components/WaitlistModal';
 import { ChartColumnBigIcon, ChartNoAxesCombinedIcon, UserRoundCheckIcon, UsersRound } from 'lucide-react';
-import { TypingAnimation } from '@/components/ui/typing-animation';
+import ProductShowcase from '@/components/ProductShowcase';
 
 export default function HomePage() {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
@@ -259,49 +259,10 @@ export default function HomePage() {
             </div>
           </AnimateInView>
         </div>
-        {/* Get The Best Feedback Section */}
-        <AnimateInView className='w-full max-w-4xl mx-auto mt-16 sm:mt-24 px-4'>
-          <div className='w-full h-dvh flex flex-col items-center justify-center gap-5'>
-            <h1
-              className='text-white text-3xl sm:text-4xl md:text-5xl font-bold mb-8'
-              style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
-            >
-              Get The Best Insights
-            </h1>
-            <div className='w-full px-4 py-2 rounded-[10px] border border-white/15 bg-white/5 text-white placeholder:text-white/40 text-sm sm:text-base px-6 py-2 outline-none ring-1 ring-primary-500 shadow-lg shadow-primary-500/20'>
-              <TypingAnimation
-                className='text-white text-sm sm:text-base'
-                blinkCursor={true}
-                typeSpeed={75}
-                loop={true}
-                showCursor={true}
-                words={['I want to build a product that solves the problem of finding a good product to buy.']}
-              ></TypingAnimation>
-            </div>
-            {/* Fake insight preview: Market Analysis, Competitor Intel, Difficulty Score */}
-            <div className='mt-8 w-full grid grid-cols-1 sm:grid-cols-3 gap-4'>
-              <div className='rounded-[10px] border border-white/15 bg-white/5 p-4'>
-                <p className='text-white/50 text-xs font-medium uppercase tracking-wider mb-2'>Market Analysis</p>
-                <p className='text-white/90 text-sm'>TAM: $2.4B</p>
-                <p className='text-white/90 text-sm'>CAGR: 12%</p>
-                <p className='text-white/60 text-xs mt-1'>3 segments identified</p>
-              </div>
-              <div className='rounded-[10px] border border-white/15 bg-white/5 p-4'>
-                <p className='text-white/50 text-xs font-medium uppercase tracking-wider mb-2'>Competitor Intel</p>
-                <p className='text-white/90 text-sm'>8 direct competitors</p>
-                <p className='text-white/90 text-sm'>Notable: Acme, BrandX, SolveIt</p>
-                <p className='text-white/60 text-xs mt-1'>Low differentiation in niche</p>
-              </div>
-              <div className='rounded-[10px] border border-white/15 bg-white/5 p-4'>
-                <p className='text-white/50 text-xs font-medium uppercase tracking-wider mb-2'>Difficulty Score</p>
-                <p className='text-warning-500 text-2xl font-bold'>
-                  6.2<span className='text-white/50 text-base font-normal'>/10</span>
-                </p>
-                <p className='text-white/60 text-xs mt-1'>Moderate – execution risk</p>
-              </div>
-            </div>
-          </div>
-        </AnimateInView>
+        {/* Product Showcase Sections */}
+        <div className='w-full max-w-6xl mx-auto mt-16 sm:mt-24 px-4 sm:px-6'>
+          <ProductShowcase />
+        </div>
         {/* Why Choose Valo Section */}
         <AnimateInView
           id='about'
