@@ -56,6 +56,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Create notification for the recipient (idea owner)
+    try {
+      const { data: requester } = await supabase
+        .from('users')
+        .select('first_name, last_name')
+        .eq('clerk_id', userId)
+        .single();
+
+      let ideaTitle: string | null = null;
+      if (ideaId) {
+        const { data: idea } = await supabase
+          .from('ideas')
+          .select('title')
+          .eq('id', ideaId)
+          .single();
+        ideaTitle = idea?.title ?? null;
+      }
+
+      const actorName = requester
+        ? `${requester.first_name} ${requester.last_name}`.trim()
+        : 'Someone';
+
+      await supabase.from('notifications').insert({
+        user_id: recipientId,
+        type: 'connection_request',
+        connection_id: connection.id,
+        idea_id: ideaId || null,
+        actor_name: actorName,
+        idea_title: ideaTitle,
+        message: message.trim(),
+      });
+    } catch {
+      // Notification creation is non-critical
+    }
+
     return NextResponse.json(connection, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Failed to create connection' }, { status: 500 });
@@ -84,7 +119,6 @@ export async function GET(request: NextRequest) {
     } else if (type === 'received') {
       query = query.eq('recipient_id', userId);
     } else {
-      // Default: show all connections involving the user
       query = query.or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
     }
 
@@ -92,6 +126,41 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Enrich with requester profile and idea title for received connections
+    if (type === 'received' && connections && connections.length > 0) {
+      const requesterIds = [...new Set(connections.map((c) => c.requester_id))];
+      const ideaIds = [...new Set(connections.map((c) => c.idea_id).filter(Boolean))];
+
+      const [usersResult, ideasResult] = await Promise.all([
+        supabase.from('users').select('clerk_id, first_name, last_name, username').in('clerk_id', requesterIds),
+        ideaIds.length > 0
+          ? supabase.from('ideas').select('id, title').in('id', ideaIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      const usersMap = new Map(
+        (usersResult.data ?? []).map((u) => [u.clerk_id, u])
+      );
+      const ideasMap = new Map(
+        (ideasResult.data ?? []).map((i) => [i.id, i])
+      );
+
+      const enriched = connections.map((c) => {
+        const requester = usersMap.get(c.requester_id);
+        const idea = c.idea_id ? ideasMap.get(c.idea_id) : null;
+        return {
+          ...c,
+          requester_name: requester
+            ? `${requester.first_name} ${requester.last_name}`.trim()
+            : 'Unknown',
+          requester_username: requester?.username ?? null,
+          idea_title: idea?.title ?? null,
+        };
+      });
+
+      return NextResponse.json(enriched);
     }
 
     return NextResponse.json(connections || []);

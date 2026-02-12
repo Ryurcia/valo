@@ -174,8 +174,31 @@ export interface Connection {
   idea_id: string | null;
   status: ConnectionStatus;
   message: string | null;
+  rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type NotificationType = 'connection_accepted' | 'connection_declined' | 'connection_request';
+
+export interface EnrichedConnection extends Connection {
+  requester_name?: string;
+  requester_username?: string;
+  idea_title?: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  connection_id: string | null;
+  idea_id: string | null;
+  actor_name: string;
+  idea_title: string | null;
+  message: string | null;
+  read: boolean;
+  seen_at: string | null;
+  created_at: string;
 }
 
 export interface UserProfile {

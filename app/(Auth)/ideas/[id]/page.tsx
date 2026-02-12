@@ -10,7 +10,8 @@ import CofounderRequirements from '@/components/CofounderRequirements';
 import CollaborationCTA from '@/components/CollaborationCTA';
 import BackButton from '@/components/BackButton';
 import DeleteIdeaButton from '@/components/DeleteIdeaButton';
-import { Users } from 'lucide-react';
+import { Users, Inbox } from 'lucide-react';
+import Link from 'next/link';
 
 interface IdeaPageProps {
   params: Promise<{ id: string }>;
@@ -66,6 +67,17 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
   });
 
   const isAuthor = userId === idea.user_id;
+
+  // Fetch pending request count for idea author
+  let pendingRequestCount = 0;
+  if (isAuthor && idea.looking_for_cofounder) {
+    const { count } = await supabase
+      .from('connections')
+      .select('*', { count: 'exact', head: true })
+      .eq('idea_id', id)
+      .eq('status', 'pending');
+    pendingRequestCount = count ?? 0;
+  }
 
   // Fetch viewer profile and connection status for co-founder matching
   let matchResult = null;
@@ -209,6 +221,27 @@ export default async function IdeaPage({ params }: IdeaPageProps) {
             difficulty={idea.difficulty}
           />
         </div>
+      )}
+
+      {/* Pending Requests - For idea author */}
+      {isAuthor && idea.looking_for_cofounder && pendingRequestCount > 0 && (
+        <Link
+          href='/requests'
+          className='flex items-center justify-between mb-6 p-4 bg-surface-variant rounded-lg border border-primary-500/20 hover:border-primary-500/40 transition-colors'
+        >
+          <div className='flex items-center gap-3'>
+            <div className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500/10'>
+              <Inbox size={20} className='text-primary-500' />
+            </div>
+            <div>
+              <p className='text-sm font-medium text-white'>
+                {pendingRequestCount} pending collaboration {pendingRequestCount === 1 ? 'request' : 'requests'}
+              </p>
+              <p className='text-xs text-white/50'>Review and respond to people who want to join</p>
+            </div>
+          </div>
+          <span className='text-sm text-primary-400'>View requests &rarr;</span>
+        </Link>
       )}
 
       {/* Collaboration CTA - Above comments for visibility */}

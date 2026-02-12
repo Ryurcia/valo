@@ -5,6 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+  usePathname: () => '/home',
 }));
 
 // Mock Clerk
@@ -77,9 +78,9 @@ describe('AuthLayout', () => {
       isLoaded: true,
     });
 
-    render(<AuthLayout><div>Home</div></AuthLayout>);
+    render(<AuthLayout><div>Returning User Content</div></AuthLayout>);
 
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Returning User Content')).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalledWith('/onboarding');
   });
 });

@@ -14,8 +14,11 @@ vi.mock('@clerk/nextjs/server', () => ({
 
 // Mock Supabase
 const mockInsert = vi.fn();
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
+vi.mock('@/lib/supabase-server', () => ({
+  createServerSupabaseClient: () => ({
+    from: () => ({ insert: mockInsert }),
+  }),
+  supabaseAdmin: {
     from: () => ({ insert: mockInsert }),
   },
 }));

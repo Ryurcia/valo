@@ -5,13 +5,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { Home, TrendingUp, Globe, Settings, HelpCircle, Plus, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Home, TrendingUp, Globe, Bell, Handshake, Settings, HelpCircle, Plus, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const mainMenuItems = [
   { label: 'Home', icon: Home, href: '/home' },
   { label: 'Trending', icon: TrendingUp, href: '/tending' },
   { label: 'Explore', icon: Globe, href: '/explore' },
+  { label: 'Requests', icon: Handshake, href: '/requests' },
+  { label: 'Notifications', icon: Bell, href: '/notifications' },
 ];
 
 const bottomMenuItems = [
@@ -23,6 +26,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const { user } = useUser();
+  const { unreadCount } = useNotifications();
 
   const fullName = user?.fullName || user?.firstName || 'User';
   const username = user?.username || user?.primaryEmailAddress?.emailAddress || '';
@@ -91,27 +95,38 @@ export default function Sidebar() {
             <nav className='flex flex-col gap-3'>
               {mainMenuItems.map((item) => {
                 const isActive = pathname === item.href;
+                const showBadge = item.label === 'Notifications' && unreadCount > 0;
                 return (
                   <Link
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 rounded-lg transition-colors',
+                      'flex items-center gap-3 rounded-lg transition-colors relative',
                       collapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5',
                       isActive
                         ? 'bg-surface-variant text-white font-medium'
                         : 'text-white/60 hover:text-white hover:bg-surface-variant'
                     )}
                   >
-                    <item.icon size={20} className='shrink-0' />
+                    <div className='relative shrink-0'>
+                      <item.icon size={20} />
+                      {showBadge && collapsed && (
+                        <span className='absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary-500 rounded-full border-2 border-surface' />
+                      )}
+                    </div>
                     <span
                       className={cn(
-                        'whitespace-nowrap transition-all duration-300 overflow-hidden',
+                        'whitespace-nowrap transition-all duration-300 overflow-hidden flex-1',
                         collapsed ? 'hidden' : 'block'
                       )}
                     >
                       {item.label}
                     </span>
+                    {showBadge && !collapsed && (
+                      <span className='flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium text-white bg-primary-500 rounded-full'>
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
