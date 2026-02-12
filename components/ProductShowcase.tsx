@@ -1,4 +1,5 @@
 import AnimateInView from '@/components/AnimateInView';
+import { Lightbulb, Sparkles } from 'lucide-react';
 
 export default function ProductShowcase() {
   return (
@@ -14,7 +15,10 @@ export default function ProductShowcase() {
         </AnimateInView>
 
         <AnimateInView className='w-full lg:w-[45%]' y={30} delay={0.1}>
-          <p className='text-xs font-semibold uppercase tracking-widest text-primary-500 mb-3'>Idea Details</p>
+          <p className='text-xs font-semibold uppercase tracking-widest text-primary-500 mb-3 flex items-center gap-1.5'>
+            <Lightbulb size={14} />
+            Idea Details
+          </p>
           <h2
             className='text-white text-3xl sm:text-4xl font-bold mb-4'
             style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}
@@ -31,7 +35,10 @@ export default function ProductShowcase() {
       {/* Section 2: Market Insights — Text left, mock right */}
       <div className='flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-16'>
         <AnimateInView className='w-full lg:w-[45%]' y={30} delay={0.1}>
-          <p className='text-xs font-semibold uppercase tracking-widest text-accent-500 mb-3'>Market Insights</p>
+          <p className='text-xs font-semibold uppercase tracking-widest text-accent-500 mb-3 flex items-center gap-1.5'>
+            <Sparkles size={14} />
+            Market Insights
+          </p>
           <h2
             className='text-white text-3xl sm:text-4xl font-bold mb-4'
             style={{ fontFamily: 'var(--font-zalando-sans-expanded)' }}

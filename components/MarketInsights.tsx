@@ -1,4 +1,16 @@
+import { Info } from 'lucide-react';
 import { MarketAnalysis, CompetitiveAnalysis } from '@/types';
+
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <span className='relative group inline-flex ml-1'>
+      <Info size={12} className='text-white/30 cursor-help' />
+      <span className='absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-surface text-xs text-white/80 leading-snug w-48 text-center opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity shadow-lg border border-white/10 z-10'>
+        {text}
+      </span>
+    </span>
+  );
+}
 
 interface MarketInsightsProps {
   marketAnalysis: MarketAnalysis | null;
@@ -23,11 +35,17 @@ export default function MarketInsights({ marketAnalysis, competitors, difficulty
       {marketAnalysis && (
         <div className='grid grid-cols-2 gap-3'>
           <div className='p-4 bg-surface-variant rounded-lg'>
-            <p className='text-xs font-medium text-accent-500 mb-1'>TAM</p>
+            <p className='text-xs font-medium text-accent-500 mb-1 flex items-center'>
+              TAM
+              <InfoTooltip text='Total Addressable Market — the total revenue opportunity available if you captured 100% of the market.' />
+            </p>
             <p className='text-lg font-semibold text-white'>{marketAnalysis.tam}</p>
           </div>
           <div className='p-4 bg-surface-variant rounded-lg'>
-            <p className='text-xs font-medium text-accent-500 mb-1'>CAGR</p>
+            <p className='text-xs font-medium text-accent-500 mb-1 flex items-center'>
+              CAGR
+              <InfoTooltip text='Compound Annual Growth Rate — the average yearly growth rate of the market over a period of time.' />
+            </p>
             <p className='text-lg font-semibold text-white'>{marketAnalysis.cagr}</p>
           </div>
           <div className='p-4 bg-surface-variant rounded-lg col-span-2'>
